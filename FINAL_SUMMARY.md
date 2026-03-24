@@ -2,9 +2,9 @@
 
 ## ✅ EVERYTHING IS COMPLETE AND READY!
 
-**Date**: November 29, 2025  
+
 **Status**: ✅ FULLY IMPLEMENTED  
-**Branch**: rayyanBranch  
+
 **Ready to Test**: YES  
 
 ---
@@ -82,14 +82,14 @@
 
 ### Step 2: Run Backend (Terminal 1)
 ```powershell
-cd "c:\Users\Nazia Khan\Desktop\Rayyan\project1\HRMS-CoreConnect\CoreConnectHRMS-1"
+
 python manage.py runserver
 ```
 ✅ Wait for: "Starting development server at http://127.0.0.1:8000/"
 
 ### Step 3: Run Frontend (Terminal 2)
 ```powershell
-cd "c:\Users\Nazia Khan\Desktop\Rayyan\project1\HRMS-CoreConnect\CoreConnectHRMS-1\coreconnect-frontend"
+
 npm install
 npm run dev
 ```
