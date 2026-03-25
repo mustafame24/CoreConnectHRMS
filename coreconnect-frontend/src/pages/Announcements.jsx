@@ -11,7 +11,9 @@ const Announcements = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
+    const [activeActionMenu, setActiveActionMenu] = useState(null);
     const itemsPerPage = 5;
+    const today = new Date().toISOString().split('T')[0];
 
     const [announcements, setAnnouncements] = useState([
         { title: 'Company Holiday Schedule 2024', author: 'HR Department', category: 'General', date: '2024-07-25', status: 'Published' },
@@ -65,8 +67,16 @@ const Announcements = () => {
             title: '',
             content: '',
             category: '',
-            date: new Date().toISOString().split('T')[0]
+            date: today
         });
+    };
+
+    const handleDeleteAnnouncement = (index) => {
+        const announcementToDelete = paginatedAnnouncements[index];
+        if (confirm(`Delete "${announcementToDelete.title}"?`)) {
+            setAnnouncements(announcements.filter((_, i) => i !== announcements.indexOf(announcementToDelete)));
+            setActiveActionMenu(null);
+        }
     };
 
     // Filter announcements
@@ -132,6 +142,7 @@ const Announcements = () => {
                         type="date" 
                         className="form-control"
                         value={formData.date}
+                        min={today}
                         onChange={(e) => handleInputChange('date', e.target.value)}
                     />
                 </div>
@@ -217,7 +228,89 @@ const Announcements = () => {
                                         {row.status}
                                     </span>
                                 </td>
-                                <td style={{ padding: '1rem 0' }}>...</td>
+                                <td style={{ padding: '1rem 0', position: 'relative' }}>
+                                    <button
+                                        onClick={() => setActiveActionMenu(activeActionMenu === i ? null : i)}
+                                        style={{
+                                            background: 'none',
+                                            border: 'none',
+                                            fontSize: '1.25rem',
+                                            cursor: 'pointer',
+                                            color: '#6c757d',
+                                            padding: 0
+                                        }}
+                                    >
+                                        ⋯
+                                    </button>
+                                    {activeActionMenu === i && (
+                                        <div style={{
+                                            position: 'absolute',
+                                            top: '100%',
+                                            right: 0,
+                                            backgroundColor: '#fff',
+                                            border: '1px solid #dee2e6',
+                                            borderRadius: '4px',
+                                            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                                            zIndex: 10,
+                                            minWidth: '120px'
+                                        }}>
+                                            <button
+                                                onClick={() => alert(`View: ${row.title}\n\n${row.category} - ${row.date}`)}
+                                                style={{
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    padding: '0.75rem 1rem',
+                                                    fontSize: '0.9rem',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    textAlign: 'left',
+                                                    cursor: 'pointer',
+                                                    color: '#0d6efd',
+                                                    borderBottom: '1px solid #f0f0f0'
+                                                }}
+                                            >
+                                                View
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setFormData({ title: row.title, content: row.title, category: row.category, date: row.date });
+                                                    setActiveActionMenu(null);
+                                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                                }}
+                                                style={{
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    padding: '0.75rem 1rem',
+                                                    fontSize: '0.9rem',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    textAlign: 'left',
+                                                    cursor: 'pointer',
+                                                    color: '#0056b3',
+                                                    borderBottom: '1px solid #f0f0f0'
+                                                }}
+                                            >
+                                                Edit
+                                            </button>
+                                            <button
+                                                onClick={() => handleDeleteAnnouncement(i)}
+                                                style={{
+                                                    display: 'block',
+                                                    width: '100%',
+                                                    padding: '0.75rem 1rem',
+                                                    fontSize: '0.9rem',
+                                                    background: 'none',
+                                                    border: 'none',
+                                                    textAlign: 'left',
+                                                    cursor: 'pointer',
+                                                    color: '#dc3545'
+                                                }}
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    )}
+                                </td>
                             </tr>
                         ))}
                     </tbody>
