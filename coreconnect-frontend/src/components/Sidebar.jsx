@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
     LayoutDashboard,
@@ -9,13 +9,20 @@ import {
     Wallet,
     BarChart3,
     Megaphone,
-    Settings
+    Settings,
+    LogOut
 } from 'lucide-react';
 
 const Sidebar = () => {
     const location = useLocation();
-    const { user } = useAuth();
+    const navigate = useNavigate();
+    const { user, logout } = useAuth();
     const isActive = (path) => location.pathname === path;
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+    };
 
     const navItems = [
         { icon: LayoutDashboard, label: 'Dashboard', path: '/dashboard' },
@@ -45,15 +52,35 @@ const Sidebar = () => {
                         to={item.path}
                         className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
                     >
-                        <item.icon size={20} />
-                        <span>{item.label}</span>
-                    </Link>
-                ))}
-            </nav>
-            <div style={{ padding: '1rem', borderTop: '1px solid #e9ecef' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                        <item.icon size={20} />, marginBottom: '1rem' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Users size={16} />
+                    </div>
+                    <div>
+                        <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>{user?.first_name || user?.name || 'User'}</div>
+                        <div style={{ fontSize: '0.75rem', color: '#6c757d' }}>{user?.email || 'user@hrms.com'}</div>
+                    </div>
+                </div>
+                <button
+                    onClick={handleLogout}
+                    style={{
+                        width: '100%',
+                        padding: '0.5rem 0.75rem',
+                        backgroundColor: '#dc3545',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        fontSize: '0.9rem',
+                        fontWeight: '500'
+                    }}
+                >
+                    <LogOut size={16} /> Logout
+                </button   <Users size={16} />
                     </div>
                     <div>
                         <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>{user?.first_name || user?.name || 'User'}</div>

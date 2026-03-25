@@ -11,6 +11,7 @@ const Employees = () => {
     const [error, setError] = useState(null);
     const [showForm, setShowForm] = useState(false);
     const [selectedEmployee, setSelectedEmployee] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', address: '', department: '', hire_date: '', role: 'Employee', password: '' });
     const [showPassword, setShowPassword] = useState(null);
     const [editingEmployee, setEditingEmployee] = useState(null);
@@ -66,6 +67,12 @@ const Employees = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const filteredEmployees = employees.filter(emp =>
+        emp.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        emp.phone_number?.includes(searchTerm)
+    );
+
     const handleViewProfile = (employee) => {
         setSelectedEmployee(employee);
     };
@@ -112,7 +119,13 @@ const Employees = () => {
 
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', gap: '1rem', flex: 1, maxWidth: '600px' }}>
-                    <input type="text" className="form-control" placeholder="Search employees..." />
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Search employees..." 
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                     <select className="form-control" style={{ width: '150px' }}>
                         <option>All</option>
                     </select>
@@ -179,11 +192,11 @@ const Employees = () => {
 
             <div className="card">
                 <h3 style={{ marginBottom: '0.5rem', fontSize: '1.1rem' }}>Employee List</h3>
-                <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Total employees: {employees.length}</p>
+                <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Total employees: {filteredEmployees.length}</p>
 
                 {loading ? (
                     <p style={{ color: '#6c757d' }}>Loading employees...</p>
-                ) : employees.length === 0 ? (
+                ) : filteredEmployees.length === 0 ? (
                     <p style={{ color: '#6c757d' }}>No employees found.</p>
                 ) : (
                     <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -197,7 +210,7 @@ const Employees = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {employees.map((emp, i) => (
+                            {filteredEmployees.map((emp, i) => (
                                 <tr key={i} style={{ borderBottom: '1px solid #f8f9fa' }}>
                                     <td style={{ padding: '1rem 0' }}>
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>

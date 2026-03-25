@@ -53,7 +53,7 @@ const EmployeeDashboard = () => {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                        <a href="#" style={{ color: '#0056b3', fontSize: '0.9rem', fontWeight: '500' }}>View Detailed Attendance</a>
+                        <a onClick={() => navigate('/attendance-summary')} style={{ color: '#0056b3', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer' }}>View Detailed Attendance</a>
                     </div>
                 </div>
 
@@ -74,7 +74,7 @@ const EmployeeDashboard = () => {
                     </div>
 
                     <div style={{ textAlign: 'right' }}>
-                        <a href="#" style={{ color: '#0056b3', fontSize: '0.9rem', fontWeight: '500' }}>View All Announcements</a>
+                        <a onClick={() => navigate('/announcements')} style={{ color: '#0056b3', fontSize: '0.9rem', fontWeight: '500', cursor: 'pointer' }}>View All Announcements</a>
                     </div>
                 </div>
             </div>
