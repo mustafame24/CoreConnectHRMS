@@ -1,5 +1,9 @@
 from rest_framework import serializers
-from .models import User, Role, Attendance, Leave
+from .models import (
+    User, Role, Attendance, Leave, Payroll, SalaryComponent, Benefits,
+    PerformanceReview, Announcement, AnnouncementRead, HelpdeskTicket, 
+    HelpdeskComment, TaxRecord, JobPosting, Candidate
+)
 from datetime import datetime, date
 
 class RoleSerializer(serializers.ModelSerializer):
@@ -124,3 +128,147 @@ class LoginSerializer(serializers.Serializer):
     
     class Meta:
         fields = ['email', 'password']
+
+
+# ==================== PAYROLL SERIALIZERS ====================
+class PayrollSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    user_department = serializers.CharField(source='user.department', read_only=True)
+    
+    class Meta:
+        model = Payroll
+        fields = ['id', 'user', 'user_name', 'user_email', 'user_department', 'month', 
+                  'basic_salary', 'allowances', 'deductions', 'tax', 'net_salary', 
+                  'payment_date', 'status', 'notes', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+class SalaryComponentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SalaryComponent
+        fields = ['id', 'name', 'component_type', 'description', 'is_active', 'created_at']
+        read_only_fields = ['id', 'created_at']
+
+
+class BenefitsSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = Benefits
+        fields = ['id', 'user', 'user_name', 'health_insurance', 'life_insurance', 
+                  'provident_fund', 'gratuity', 'meal_allowance', 'transportation_allowance', 
+                  'bonus', 'bonus_frequency', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+# ==================== PERFORMANCE REVIEW SERIALIZERS ====================
+class PerformanceReviewSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.username', read_only=True)
+    reviewer_name = serializers.CharField(source='reviewer.username', read_only=True)
+    
+    class Meta:
+        model = PerformanceReview
+        fields = ['id', 'employee', 'employee_name', 'reviewer', 'reviewer_name', 
+                  'review_period_start', 'review_period_end', 'overall_rating', 
+                  'technical_skills', 'communication_skills', 'teamwork', 'punctuality', 
+                  'reliability', 'strengths', 'areas_for_improvement', 'goals_for_next_period', 
+                  'comments', 'status', 'reviewed_date', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at', 'reviewed_date']
+
+
+# ==================== ANNOUNCEMENT SERIALIZERS ====================
+class AnnouncementReadSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    
+    class Meta:
+        model = AnnouncementRead
+        fields = ['id', 'user', 'user_name', 'read_at']
+        read_only_fields = ['id', 'read_at']
+
+
+class AnnouncementSerializer(serializers.ModelSerializer):
+    created_by_name = serializers.CharField(source='created_by.username', read_only=True)
+    read_by_count = serializers.SerializerMethodField()
+    is_read = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = Announcement
+        fields = ['id', 'created_by', 'created_by_name', 'title', 'description', 'content', 
+                  'priority', 'published_date', 'expiry_date', 'is_active', 'read_by_count', 
+                  'is_read', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'published_date', 'created_at', 'updated_at']
+    
+    def get_read_by_count(self, obj):
+        return obj.read_by.count()
+    
+    def get_is_read(self, obj):
+        request = self.context.get('request')
+        if request and request.user:
+            return obj.read_by.filter(user=request.user).exists()
+        return False
+
+
+# ==================== HELPDESK SERIALIZERS ====================
+class HelpdeskCommentSerializer(serializers.ModelSerializer):
+    commented_by_name = serializers.CharField(source='commented_by.username', read_only=True)
+    
+    class Meta:
+        model = HelpdeskComment
+        fields = ['id', 'ticket', 'commented_by', 'commented_by_name', 'comment_text', 'created_at']
+        read_only_fields = ['id', 'created_at', 'commented_by']
+
+
+class HelpdeskTicketSerializer(serializers.ModelSerializer):
+    employee_name = serializers.CharField(source='employee.username', read_only=True)
+    assigned_to_name = serializers.CharField(source='assigned_to.username', read_only=True)
+    comments = HelpdeskCommentSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = HelpdeskTicket
+        fields = ['id', 'ticket_id', 'employee', 'employee_name', 'assigned_to', 'assigned_to_name', 
+                  'title', 'description', 'category', 'priority', 'status', 'resolution', 
+                  'comments', 'created_at', 'updated_at', 'resolved_at']
+        read_only_fields = ['id', 'ticket_id', 'created_at', 'updated_at', 'resolved_at']
+
+
+# ==================== TAX RECORD SERIALIZERS ====================
+class TaxRecordSerializer(serializers.ModelSerializer):
+    user_name = serializers.CharField(source='user.username', read_only=True)
+    user_email = serializers.CharField(source='user.email', read_only=True)
+    
+    class Meta:
+        model = TaxRecord
+        fields = ['id', 'user', 'user_name', 'user_email', 'financial_year', 'gross_income', 
+                  'tax_deducted', 'tax_rate', 'standard_deduction', 'taxable_income', 
+                  'tax_status', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+
+# ==================== TALENT ACQUISITION SERIALIZERS ====================
+class CandidateSerializer(serializers.ModelSerializer):
+    job_title = serializers.CharField(source='job_posting.title', read_only=True)
+    
+    class Meta:
+        model = Candidate
+        fields = ['id', 'job_posting', 'job_title', 'first_name', 'last_name', 'email', 'phone', 
+                  'resume_url', 'cover_letter', 'experience_years', 'current_company', 
+                  'current_designation', 'expected_salary', 'status', 'interview_date', 
+                  'interview_feedback', 'rating', 'applied_date', 'updated_at']
+        read_only_fields = ['id', 'applied_date', 'updated_at']
+
+
+class JobPostingSerializer(serializers.ModelSerializer):
+    posted_by_name = serializers.CharField(source='posted_by.username', read_only=True)
+    candidates_count = serializers.SerializerMethodField()
+    
+    class Meta:
+        model = JobPosting
+        fields = ['id', 'title', 'description', 'requirements', 'responsibilities', 'department', 
+                  'designation', 'experience_required', 'salary_range_min', 'salary_range_max', 
+                  'location', 'job_type', 'posted_by', 'posted_by_name', 'posted_date', 
+                  'closing_date', 'status', 'is_active', 'candidates_count', 'updated_at']
+        read_only_fields = ['id', 'posted_date', 'updated_at']
+    
+    def get_candidates_count(self, obj):
+        return obj.candidates.count()

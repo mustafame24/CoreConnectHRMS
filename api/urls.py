@@ -3,7 +3,14 @@ from .views import (
     LoginView, RegisterView, UserProfileView,
     EmployeeListCreateView, EmployeeDetailView,
     AttendanceMarkView, AttendanceSummaryView, AttendanceReportView,
-    LeaveApplyView, LeaveStatusView, LeaveApprovalView
+    LeaveApplyView, LeaveStatusView, LeaveApprovalView,
+    PayrollListView, PayrollDetailView, BenefitsListView,
+    PerformanceReviewListView, PerformanceReviewDetailView,
+    AnnouncementListView, AnnouncementDetailView,
+    HelpdeskTicketListView, HelpdeskTicketDetailView, HelpdeskCommentView,
+    TaxRecordListView, TaxRecordDetailView,
+    JobPostingListView, JobPostingDetailView,
+    CandidateListView, CandidateDetailView
 )
 
 urlpatterns = [
@@ -13,29 +20,44 @@ urlpatterns = [
     path('auth/profile/', UserProfileView.as_view(), name='user-profile'),
     
     # ==================== EMPLOYEE MANAGEMENT ====================
-    # 1. Add new employee & Get all employees
     path('employees/', EmployeeListCreateView.as_view(), name='employee-list-create'),
-    
-    # 5. Edit employee info & 6. View employee profile
     path('employees/<int:employee_id>/', EmployeeDetailView.as_view(), name='employee-detail'),
     
     # ==================== ATTENDANCE ====================
-    # 3. Mark attendance
     path('attendance/mark/', AttendanceMarkView.as_view(), name='attendance-mark'),
-    
-    # 4. Attendance summary (daily)
     path('attendance/summary/', AttendanceSummaryView.as_view(), name='attendance-summary'),
-    
-    # 2. Export attendance reports
     path('attendance/report/', AttendanceReportView.as_view(), name='attendance-report'),
     
     # ==================== LEAVE ====================
-    # 7. Apply for leave
     path('leave/apply/', LeaveApplyView.as_view(), name='leave-apply'),
-    
-    # View leave status
     path('leave/status/', LeaveStatusView.as_view(), name='leave-status'),
-    
-    # Approve/Reject leave
     path('leave/<int:leave_id>/approval/', LeaveApprovalView.as_view(), name='leave-approval'),
+    
+    # ==================== PAYROLL ====================
+    path('payroll/', PayrollListView.as_view(), name='payroll-list'),
+    path('payroll/<int:payroll_id>/', PayrollDetailView.as_view(), name='payroll-detail'),
+    path('benefits/', BenefitsListView.as_view(), name='benefits-list'),
+    
+    # ==================== PERFORMANCE REVIEWS ====================
+    path('performance-reviews/', PerformanceReviewListView.as_view(), name='performance-review-list'),
+    path('performance-reviews/<int:review_id>/', PerformanceReviewDetailView.as_view(), name='performance-review-detail'),
+    
+    # ==================== ANNOUNCEMENTS ====================
+    path('announcements/', AnnouncementListView.as_view(), name='announcement-list'),
+    path('announcements/<int:announcement_id>/', AnnouncementDetailView.as_view(), name='announcement-detail'),
+    
+    # ==================== HR HELPDESK ====================
+    path('helpdesk/tickets/', HelpdeskTicketListView.as_view(), name='helpdesk-ticket-list'),
+    path('helpdesk/tickets/<int:ticket_id>/', HelpdeskTicketDetailView.as_view(), name='helpdesk-ticket-detail'),
+    path('helpdesk/tickets/<int:ticket_id>/comments/', HelpdeskCommentView.as_view(), name='helpdesk-comment'),
+    
+    # ==================== TAX MANAGEMENT ====================
+    path('tax-records/', TaxRecordListView.as_view(), name='tax-record-list'),
+    path('tax-records/<int:tax_id>/', TaxRecordDetailView.as_view(), name='tax-record-detail'),
+    
+    # ==================== TALENT ACQUISITION ====================
+    path('job-postings/', JobPostingListView.as_view(), name='job-posting-list'),
+    path('job-postings/<int:job_id>/', JobPostingDetailView.as_view(), name='job-posting-detail'),
+    path('candidates/', CandidateListView.as_view(), name='candidate-list'),
+    path('candidates/<int:candidate_id>/', CandidateDetailView.as_view(), name='candidate-detail'),
 ]

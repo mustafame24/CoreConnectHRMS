@@ -8,12 +8,20 @@ from django.http import HttpResponse
 from django.db.models import Q
 import csv
 from datetime import datetime, timedelta
+import uuid
 
-from .models import User, Role, Attendance, Leave
+from .models import (
+    User, Role, Attendance, Leave, Payroll, SalaryComponent, Benefits,
+    PerformanceReview, Announcement, AnnouncementRead, HelpdeskTicket,
+    HelpdeskComment, TaxRecord, JobPosting, Candidate
+)
 from .serializers import (
     UserSerializer, UserDetailSerializer, AttendanceSerializer,
     AttendanceReportSerializer, LeaveSerializer, LeaveApprovalSerializer,
-    LoginSerializer, RoleSerializer
+    LoginSerializer, RoleSerializer, PayrollSerializer, SalaryComponentSerializer,
+    BenefitsSerializer, PerformanceReviewSerializer, AnnouncementSerializer,
+    AnnouncementReadSerializer, HelpdeskTicketSerializer, HelpdeskCommentSerializer,
+    TaxRecordSerializer, JobPostingSerializer, CandidateSerializer
 )
 from .authentication import JWTAuthentication, generate_access_token
 from .permissions import IsAdmin, IsHR, IsEmployee, IsAdminOrHR
@@ -623,4 +631,671 @@ class UserProfileView(APIView):
             'status': 'success',
             'data': serializer.data
         }, status=status.HTTP_200_OK)
+
+
+# ==================== PAYROLL MANAGEMENT ====================
+class PayrollListView(APIView):
+    """List and create payroll records"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request):
+        """Get payroll records"""
+        employee_id = request.query_params.get('employee_id')
+        month = request.query_params.get('month')
+        
+        queryset = Payroll.objects.all()
+        
+        if employee_id:
+            queryset = queryset.filter(user_id=employee_id)
+        if month:
+            queryset = queryset.filter(month=month)
+        
+        serializer = PayrollSerializer(queryset, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create payroll record"""
+        serializer = PayrollSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Payroll created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PayrollDetailView(APIView):
+    """Update and delete payroll records"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request, payroll_id):
+        """Get single payroll record"""
+        try:
+            payroll = Payroll.objects.get(id=payroll_id)
+            serializer = PayrollSerializer(payroll)
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Payroll.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Payroll not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, payroll_id):
+        """Update payroll record"""
+        try:
+            payroll = Payroll.objects.get(id=payroll_id)
+            serializer = PayrollSerializer(payroll, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Payroll updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Payroll.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Payroll not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class BenefitsListView(APIView):
+    """List and manage employee benefits"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request):
+        """Get benefits for employees"""
+        benefits = Benefits.objects.all()
+        serializer = BenefitsSerializer(benefits, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create or update benefits"""
+        serializer = BenefitsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Benefits saved successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+# ==================== PERFORMANCE REVIEWS ====================
+class PerformanceReviewListView(APIView):
+    """List and create performance reviews"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request):
+        """Get performance reviews"""
+        employee_id = request.query_params.get('employee_id')
+        
+        queryset = PerformanceReview.objects.all()
+        if employee_id:
+            queryset = queryset.filter(employee_id=employee_id)
+        
+        serializer = PerformanceReviewSerializer(queryset, many=True, context={'request': request})
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create performance review"""
+        serializer = PerformanceReviewSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Performance review created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PerformanceReviewDetailView(APIView):
+    """Update and retrieve performance reviews"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request, review_id):
+        """Get single review"""
+        try:
+            review = PerformanceReview.objects.get(id=review_id)
+            serializer = PerformanceReviewSerializer(review, context={'request': request})
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except PerformanceReview.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Review not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, review_id):
+        """Update review"""
+        try:
+            review = PerformanceReview.objects.get(id=review_id)
+            serializer = PerformanceReviewSerializer(review, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Review updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except PerformanceReview.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Review not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+# ==================== ANNOUNCEMENTS ====================
+class AnnouncementListView(APIView):
+    """List and create announcements"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get announcements"""
+        announcements = Announcement.objects.filter(is_active=True)
+        serializer = AnnouncementSerializer(announcements, many=True, context={'request': request})
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create announcement (HR/Admin only)"""
+        if not (request.user.role.name in ['admin', 'hr']):
+            return Response({
+                'status': 'error',
+                'message': 'Only HR and Admin can create announcements'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        data = request.data.copy()
+        data['created_by'] = request.user.id
+        serializer = AnnouncementSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Announcement created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class AnnouncementDetailView(APIView):
+    """Update and delete announcements"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request, announcement_id):
+        """Get single announcement"""
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            
+            # Mark as read
+            AnnouncementRead.objects.get_or_create(
+                announcement=announcement,
+                user=request.user
+            )
+            
+            serializer = AnnouncementSerializer(announcement, context={'request': request})
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Announcement.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Announcement not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, announcement_id):
+        """Update announcement"""
+        try:
+            announcement = Announcement.objects.get(id=announcement_id)
+            serializer = AnnouncementSerializer(announcement, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Announcement updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Announcement.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Announcement not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+# ==================== HR HELPDESK ====================
+class HelpdeskTicketListView(APIView):
+    """List and create helpdesk tickets"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get helpdesk tickets"""
+        queryset = HelpdeskTicket.objects.all()
+        
+        # Employees see only their own tickets
+        if request.user.role.name == 'employee':
+            queryset = queryset.filter(employee=request.user)
+        
+        # Filter by status if provided
+        status_filter = request.query_params.get('status')
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        serializer = HelpdeskTicketSerializer(queryset, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create helpdesk ticket"""
+        data = request.data.copy()
+        data['employee'] = request.user.id
+        data['ticket_id'] = f"TKT-{uuid.uuid4().hex[:8].upper()}"
+        
+        serializer = HelpdeskTicketSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Ticket created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class HelpdeskTicketDetailView(APIView):
+    """Update and manage helpdesk tickets"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, ticket_id):
+        """Get single ticket"""
+        try:
+            ticket = HelpdeskTicket.objects.get(id=ticket_id)
+            serializer = HelpdeskTicketSerializer(ticket)
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except HelpdeskTicket.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Ticket not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, ticket_id):
+        """Update ticket"""
+        try:
+            ticket = HelpdeskTicket.objects.get(id=ticket_id)
+            
+            # Track status changes
+            if 'status' in request.data and request.data['status'] == 'resolved':
+                request.data._mutable = True if hasattr(request.data, '_mutable') else None
+                request.data['resolved_at'] = datetime.now()
+            
+            serializer = HelpdeskTicketSerializer(ticket, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Ticket updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except HelpdeskTicket.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Ticket not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class HelpdeskCommentView(APIView):
+    """Add comments to helpdesk tickets"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, ticket_id):
+        """Add comment to ticket"""
+        try:
+            ticket = HelpdeskTicket.objects.get(id=ticket_id)
+            
+            data = request.data.copy()
+            data['ticket'] = ticket.id
+            data['commented_by'] = request.user.id
+            
+            serializer = HelpdeskCommentSerializer(data=data)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Comment added successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_201_CREATED)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except HelpdeskTicket.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Ticket not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+# ==================== TAX MANAGEMENT ====================
+class TaxRecordListView(APIView):
+    """List and manage tax records"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request):
+        """Get tax records"""
+        employee_id = request.query_params.get('employee_id')
+        financial_year = request.query_params.get('financial_year')
+        
+        queryset = TaxRecord.objects.all()
+        
+        if employee_id:
+            queryset = queryset.filter(user_id=employee_id)
+        if financial_year:
+            queryset = queryset.filter(financial_year=financial_year)
+        
+        serializer = TaxRecordSerializer(queryset, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create tax record"""
+        serializer = TaxRecordSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Tax record created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class TaxRecordDetailView(APIView):
+    """Get and update tax records"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request, tax_id):
+        """Get single tax record"""
+        try:
+            tax_record = TaxRecord.objects.get(id=tax_id)
+            serializer = TaxRecordSerializer(tax_record)
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except TaxRecord.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Tax record not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, tax_id):
+        """Update tax record"""
+        try:
+            tax_record = TaxRecord.objects.get(id=tax_id)
+            serializer = TaxRecordSerializer(tax_record, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Tax record updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except TaxRecord.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Tax record not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+# ==================== TALENT ACQUISITION ====================
+class JobPostingListView(APIView):
+    """List and create job postings"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get job postings"""
+        # Show only active/open positions to employees
+        queryset = JobPosting.objects.filter(is_active=True)
+        
+        # HR/Admin see all
+        if request.user.role.name in ['admin', 'hr']:
+            queryset = JobPosting.objects.all()
+        
+        serializer = JobPostingSerializer(queryset, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Create job posting (HR/Admin only)"""
+        if request.user.role.name not in ['admin', 'hr']:
+            return Response({
+                'status': 'error',
+                'message': 'Only HR and Admin can create job postings'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        data = request.data.copy()
+        data['posted_by'] = request.user.id
+        serializer = JobPostingSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Job posting created successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class JobPostingDetailView(APIView):
+    """Get and update job postings"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, job_id):
+        """Get single job posting"""
+        try:
+            job = JobPosting.objects.get(id=job_id)
+            serializer = JobPostingSerializer(job)
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except JobPosting.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Job posting not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, job_id):
+        """Update job posting"""
+        if request.user.role.name not in ['admin', 'hr']:
+            return Response({
+                'status': 'error',
+                'message': 'Only HR and Admin can update job postings'
+            }, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            job = JobPosting.objects.get(id=job_id)
+            serializer = JobPostingSerializer(job, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Job posting updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except JobPosting.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Job posting not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+
+
+class CandidateListView(APIView):
+    """List and create candidate applications"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        """Get candidates"""
+        job_id = request.query_params.get('job_id')
+        status_filter = request.query_params.get('status')
+        
+        queryset = Candidate.objects.all()
+        
+        if job_id:
+            queryset = queryset.filter(job_posting_id=job_id)
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        
+        serializer = CandidateSerializer(queryset, many=True)
+        return Response({
+            'status': 'success',
+            'data': serializer.data
+        }, status=status.HTTP_200_OK)
+    
+    def post(self, request):
+        """Apply for job (create candidate)"""
+        serializer = CandidateSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                'status': 'success',
+                'message': 'Application submitted successfully',
+                'data': serializer.data
+            }, status=status.HTTP_201_CREATED)
+        return Response({
+            'status': 'error',
+            'errors': serializer.errors
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+class CandidateDetailView(APIView):
+    """Update candidate status"""
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOrHR]
+    
+    def get(self, request, candidate_id):
+        """Get single candidate"""
+        try:
+            candidate = Candidate.objects.get(id=candidate_id)
+            serializer = CandidateSerializer(candidate)
+            return Response({
+                'status': 'success',
+                'data': serializer.data
+            }, status=status.HTTP_200_OK)
+        except Candidate.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Candidate not found'
+            }, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, candidate_id):
+        """Update candidate"""
+        try:
+            candidate = Candidate.objects.get(id=candidate_id)
+            serializer = CandidateSerializer(candidate, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return Response({
+                    'status': 'success',
+                    'message': 'Candidate updated successfully',
+                    'data': serializer.data
+                }, status=status.HTTP_200_OK)
+            return Response({
+                'status': 'error',
+                'errors': serializer.errors
+            }, status=status.HTTP_400_BAD_REQUEST)
+        except Candidate.DoesNotExist:
+            return Response({
+                'status': 'error',
+                'message': 'Candidate not found'
+            }, status=status.HTTP_404_NOT_FOUND)
 
