@@ -1,6 +1,8 @@
 import { FileText, MessageSquare, User } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 const EmployeeDashboard = () => {
+    const navigate = useNavigate();
     return (
         <div>
             <div className="page-header">
@@ -26,7 +28,7 @@ const EmployeeDashboard = () => {
                         </div>
                     ))}
 
-                    <button className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }}>Apply for Leave</button>
+                    <button className="btn btn-primary" style={{ width: '100%', marginTop: '1rem' }} onClick={() => navigate('/leave')}>Apply for Leave</button>
                 </div>
 
                 {/* Attendance Summary */}
@@ -81,13 +83,13 @@ const EmployeeDashboard = () => {
             <div className="card" style={{ border: 'none', boxShadow: 'none', background: 'transparent', padding: 0 }}>
                 <h3 style={{ fontSize: '1.1rem', fontWeight: '600', marginBottom: '1rem' }}>Quick Actions</h3>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }}>
+                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }} onClick={() => navigate('/payroll')}>
                         <FileText size={18} style={{ marginRight: '0.75rem' }} /> View Payslip
                     </button>
-                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }}>
+                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }} onClick={() => navigate('/performance')}>
                         <MessageSquare size={18} style={{ marginRight: '0.75rem' }} /> Submit Performance Feedback
                     </button>
-                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }}>
+                    <button className="btn" style={{ backgroundColor: '#fff', border: '1px solid #dee2e6' }} onClick={() => navigate('/employee-profile')}>
                         <User size={18} style={{ marginRight: '0.75rem' }} /> Update Profile
                     </button>
                 </div>

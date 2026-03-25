@@ -12,6 +12,7 @@ import Employees from './pages/Employees';
 import EmployeeProfile from './pages/EmployeeProfile';
 import Attendance from './pages/Attendance';
 import AttendanceSummary from './pages/AttendanceSummary';
+import Departments from './pages/Departments';
 
 import Dashboard from './pages/Dashboard';
 
@@ -28,6 +29,7 @@ function App() {
             <Route path="/admin" element={<Dashboard />} />
             <Route path="/hr" element={<Dashboard />} />
             <Route path="/employees" element={<Employees />} />
+            <Route path="/departments" element={<Departments />} />
             <Route path="/employee-profile" element={<EmployeeProfile />} />
             <Route path="/attendance" element={<Attendance />} />
             <Route path="/attendance-summary" element={<AttendanceSummary />} />
