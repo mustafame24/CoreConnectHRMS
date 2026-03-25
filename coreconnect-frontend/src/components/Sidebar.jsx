@@ -46,13 +46,24 @@ const Sidebar = () => {
                 <h2 style={{ color: '#0056b3', fontSize: '1.25rem' }}>CoreConnect</h2>
             </div>
             <nav className="sidebar-nav">
-                {navItems.map((item) => (
-                    <Link
-                        key={item.path}
-                        to={item.path}
-                        className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
-                    >
-                        <item.icon size={20} />, marginBottom: '1rem' }}>
+                {navItems.map((item) => {
+                    const IconComponent = item.icon;
+                    return (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`nav-item ${isActive(item.path) ? 'active' : ''}`}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}
+                        >
+                            <IconComponent size={20} />
+                            <span>{item.label}</span>
+                        </Link>
+                    );
+                })}
+            </nav>
+
+            <div style={{ marginTop: 'auto', paddingTop: '2rem', borderTop: '1px solid #e9ecef' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
                     <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#e9ecef', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Users size={16} />
                     </div>
@@ -80,13 +91,7 @@ const Sidebar = () => {
                     }}
                 >
                     <LogOut size={16} /> Logout
-                </button   <Users size={16} />
-                    </div>
-                    <div>
-                        <div style={{ fontSize: '0.85rem', fontWeight: '600' }}>{user?.first_name || user?.name || 'User'}</div>
-                        <div style={{ fontSize: '0.75rem', color: '#6c757d' }}>{user?.email || 'user@hrms.com'}</div>
-                    </div>
-                </div>
+                </button>
             </div>
         </div>
     );
