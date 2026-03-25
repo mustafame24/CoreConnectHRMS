@@ -1,6 +1,88 @@
 import { useState } from 'react';
 
 const Announcements = () => {
+    const [formData, setFormData] = useState({
+        title: '',
+        content: '',
+        category: '',
+        date: new Date().toISOString().split('T')[0]
+    });
+
+    const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 5;
+
+    const [announcements, setAnnouncements] = useState([
+        { title: 'Company Holiday Schedule 2024', author: 'HR Department', category: 'General', date: '2024-07-25', status: 'Published' },
+        { title: 'New Employee Onboarding Process Updates', author: 'HR Department', category: 'HR', date: '2024-08-01', status: 'Published' },
+        { title: 'Annual Company Picnic on August 20th', author: 'Events Committee', category: 'Events', date: '2024-08-10', status: 'Scheduled' },
+        { title: 'Q3 Performance Review Period Opens', author: 'Management', category: 'Performance', date: '2024-08-15', status: 'Published' },
+        { title: 'System Maintenance Window - August 28th', author: 'IT Department', category: 'IT', date: '2024-08-20', status: 'Scheduled' },
+        { title: 'Office Renovation Project Begins', author: 'Facilities', category: 'General', date: '2024-08-22', status: 'Scheduled' },
+        { title: 'Q3 Salary Review Completed', author: 'HR Department', category: 'HR', date: '2024-08-25', status: 'Published' },
+        { title: 'Employee Recognition Program Launch', author: 'Management', category: 'General', date: '2024-09-01', status: 'Published' },
+        { title: 'New Coffee Machine in Break Room', author: 'Admin', category: 'General', date: '2024-09-05', status: 'Published' },
+        { title: 'September Team Building Event', author: 'HR Department', category: 'Events', date: '2024-09-10', status: 'Scheduled' },
+        { title: 'Updated Remote Work Policy', author: 'Management', category: 'HR', date: '2024-09-15', status: 'Published' },
+        { title: 'IT Security Training Mandatory', author: 'IT Department', category: 'IT', date: '2024-09-20', status: 'Scheduled' },
+        { title: 'Annual Performance Appraisal Forms Available', author: 'HR Department', category: 'Performance', date: '2024-09-25', status: 'Published' },
+    ]);
+
+    const handleInputChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            [field]: value
+        }));
+    };
+
+    const handlePublish = () => {
+        if (!formData.title || !formData.content || !formData.category) {
+            alert('Please fill in all required fields');
+            return;
+        }
+
+        const newAnnouncement = {
+            title: formData.title,
+            author: 'Current User',
+            category: formData.category,
+            date: formData.date,
+            status: 'Published'
+        };
+
+        setAnnouncements([newAnnouncement, ...announcements]);
+        setFormData({
+            title: '',
+            content: '',
+            category: '',
+            date: new Date().toISOString().split('T')[0]
+        });
+        alert('Announcement published successfully!');
+    };
+
+    const handleClear = () => {
+        setFormData({
+            title: '',
+            content: '',
+            category: '',
+            date: new Date().toISOString().split('T')[0]
+        });
+    };
+
+    // Filter announcements
+    const filteredAnnouncements = announcements.filter(ann => {
+        const matchSearch = ann.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          ann.author.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchStatus = !filterStatus || ann.status === filterStatus;
+        return matchSearch && matchStatus;
+    });
+
+    // Pagination
+    const totalPages = Math.ceil(filteredAnnouncements.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedAnnouncements = filteredAnnouncements.slice(startIndex, endIndex);
+
     return (
         <div>
             <div className="page-header">
@@ -13,27 +95,61 @@ const Announcements = () => {
 
                 <div className="input-group">
                     <label className="input-label">Announcement Title</label>
-                    <input type="text" className="form-control" placeholder="Enter announcement title" />
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Enter announcement title"
+                        value={formData.title}
+                        onChange={(e) => handleInputChange('title', e.target.value)}
+                    />
                 </div>
 
                 <div className="input-group">
                     <label className="input-label">Content</label>
-                    <textarea className="form-control" rows="6" placeholder="Write your announcement here..."></textarea>
+                    <textarea 
+                        className="form-control" 
+                        rows="6" 
+                        placeholder="Write your announcement here..."
+                        value={formData.content}
+                        onChange={(e) => handleInputChange('content', e.target.value)}
+                    ></textarea>
                 </div>
 
                 <div className="input-group">
                     <label className="input-label">Category</label>
-                    <input type="text" className="form-control" placeholder="Select category (e.g., General, HR, Events)" />
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Select category (e.g., General, HR, Events)"
+                        value={formData.category}
+                        onChange={(e) => handleInputChange('category', e.target.value)}
+                    />
                 </div>
 
                 <div className="input-group">
                     <label className="input-label">Publish Date</label>
-                    <input type="date" className="form-control" defaultValue="2025-11-08" />
+                    <input 
+                        type="date" 
+                        className="form-control"
+                        value={formData.date}
+                        onChange={(e) => handleInputChange('date', e.target.value)}
+                    />
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem', marginTop: '1.5rem' }}>
-                    <button className="btn" style={{ border: '1px solid #dee2e6' }}>Clear Form</button>
-                    <button className="btn btn-primary">Publish Announcement</button>
+                    <button 
+                        className="btn" 
+                        style={{ border: '1px solid #dee2e6' }}
+                        onClick={handleClear}
+                    >
+                        Clear Form
+                    </button>
+                    <button 
+                        className="btn btn-primary"
+                        onClick={handlePublish}
+                    >
+                        Publish Announcement
+                    </button>
                 </div>
             </div>
 
@@ -42,8 +158,31 @@ const Announcements = () => {
                 <p style={{ color: '#6c757d', marginBottom: '1.5rem', fontSize: '0.9rem' }}>Overview of all published and scheduled announcements.</p>
 
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
-                    <input type="text" className="form-control" placeholder="Search announcements..." style={{ flex: 2 }} />
-                    <input type="text" className="form-control" placeholder="Filter by status" style={{ flex: 1 }} />
+                    <input 
+                        type="text" 
+                        className="form-control" 
+                        placeholder="Search announcements..." 
+                        style={{ flex: 2 }}
+                        value={searchTerm}
+                        onChange={(e) => {
+                            setSearchTerm(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    />
+                    <select 
+                        className="form-control" 
+                        placeholder="Filter by status" 
+                        style={{ flex: 1 }}
+                        value={filterStatus}
+                        onChange={(e) => {
+                            setFilterStatus(e.target.value);
+                            setCurrentPage(1);
+                        }}
+                    >
+                        <option value="">All Status</option>
+                        <option value="Published">Published</option>
+                        <option value="Scheduled">Scheduled</option>
+                    </select>
                 </div>
 
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -58,13 +197,7 @@ const Announcements = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {[
-                            { title: 'Company Holiday Schedule 2024', author: 'HR Department', category: 'General', date: '2024-07-25', status: 'Published' },
-                            { title: 'New Employee Onboarding Process Updates', author: 'HR Department', category: 'HR', date: '2024-08-01', status: 'Published' },
-                            { title: 'Annual Company Picnic on August 20th', author: 'Events Committee', category: 'Events', date: '2024-08-10', status: 'Scheduled' },
-                            { title: 'Q3 Performance Review Period Opens', author: 'Management', category: 'Performance', date: '2024-08-15', status: 'Published' },
-                            { title: 'System Maintenance Window - August 28th', author: 'IT Department', category: 'IT', date: '2024-08-20', status: 'Scheduled' },
-                        ].map((row, i) => (
+                        {paginatedAnnouncements.map((row, i) => (
                             <tr key={i} style={{ borderBottom: '1px solid #f8f9fa' }}>
                                 <td style={{ padding: '1rem 0', fontWeight: '500', maxWidth: '300px' }}>{row.title}</td>
                                 <td style={{ padding: '1rem 0' }}>{row.author}</td>
@@ -90,7 +223,58 @@ const Announcements = () => {
                     </tbody>
                 </table>
 
-                <div style={{ marginTop: '1rem', color: '#6c757d', fontSize: '0.9rem' }}>Page 1 of 3</div>
+                {/* Pagination Controls */}
+                <div style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ color: '#6c757d', fontSize: '0.9rem' }}>
+                        Page {currentPage} of {totalPages} ({filteredAnnouncements.length} total)
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                        <button
+                            className="btn"
+                            style={{ 
+                                border: '1px solid #dee2e6',
+                                padding: '0.5rem 0.75rem',
+                                cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                                opacity: currentPage === 1 ? 0.5 : 1
+                            }}
+                            onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                            disabled={currentPage === 1}
+                        >
+                            ← Previous
+                        </button>
+                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                            <button
+                                key={page}
+                                style={{
+                                    padding: '0.5rem 0.75rem',
+                                    border: currentPage === page ? '1px solid #0d6efd' : '1px solid #dee2e6',
+                                    backgroundColor: currentPage === page ? '#0d6efd' : '#fff',
+                                    color: currentPage === page ? '#fff' : '#000',
+                                    borderRadius: '4px',
+                                    cursor: 'pointer',
+                                    fontSize: '0.85rem',
+                                    fontWeight: currentPage === page ? '600' : '400'
+                                }}
+                                onClick={() => setCurrentPage(page)}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        <button
+                            className="btn"
+                            style={{ 
+                                border: '1px solid #dee2e6',
+                                padding: '0.5rem 0.75rem',
+                                cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                                opacity: currentPage === totalPages ? 0.5 : 1
+                            }}
+                            onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                            disabled={currentPage === totalPages}
+                        >
+                            Next →
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     );
