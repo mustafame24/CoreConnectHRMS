@@ -47,10 +47,10 @@ python -m venv venv
 
 ```bash
 # Windows Command Prompt
-venv\Scripts\activate
+venv_fixed\Scripts\activate
 
 # Windows PowerShell
-.\venv\Scripts\Activate.ps1
+.\venv_fixed\Scripts\Activate.ps1
 ```
 
 **Note**: On PowerShell, you may need to allow script execution. If you get an error, run:
@@ -146,7 +146,7 @@ To run the full application, keep **both servers running**:
 1. **Terminal 1 (Backend)**
    ```bash
    cd CoreConnectHRMS
-   .\venv\Scripts\Activate.ps1  # or: venv\Scripts\activate (cmd)
+   .\venv_fixed\Scripts\Activate.ps1  # or: venv_fixed\Scripts\activate (cmd)
    python manage.py runserver
    ```
 
@@ -196,7 +196,7 @@ To run the full application, keep **both servers running**:
 ### Backend Commands
 ```bash
 # Activate virtual environment
-.\venv\Scripts\Activate.ps1
+.\venv_fixed\Scripts\Activate.ps1
 
 # Run development server
 python manage.py runserver
