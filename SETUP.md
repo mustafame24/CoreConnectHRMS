@@ -37,10 +37,10 @@ cd CoreConnectHRMS
 
 ```bash
 # Windows Command Prompt
-python -m venv venv
+python -m venv venv_fixed
 
 # Windows PowerShell
-python -m venv venv
+python -m venv venv_fixed
 ```
 
 #### Step 2.2: Activate the Virtual Environment
